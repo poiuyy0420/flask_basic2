@@ -1,7 +1,8 @@
 import os
 from flask import Flask
+from flask_jwt import JWT
 from flask import render_template
-from models import db
+from models import db, Fcuser
 from api_v1 import api as api_v1
 
 app = Flask(__name__)
@@ -11,9 +12,13 @@ app.register_blueprint(api_v1, url_prefix='/api/v1')
 def register():
     return render_template('register.html')
 
+@app.route('/login')
+def login():
+    return render_template('login.html')
+
 @app.route('/')
 def hello():
-    return 'Hello World'
+    return render_template('home.html')
 
 basedir = os.path.abspath(os.path.dirname(__file__))
 dbfile = os.path.join(basedir, 'db.sqlite')
@@ -26,6 +31,17 @@ app.config['SECRET_KEY'] = 'qweqewsudoufaiusdsaidsad'
 db.init_app(app)
 db.app = app
 db.create_all()
+
+def authenticate(username, password):
+    user = Fcuser.query.filter(Fcuser.userid == username).first()
+    if user.password == password:
+        return user
+
+def identity(payload):
+    userid = payload['identity']
+    return Fcuser.query.filter(Fcuser.id == userid).first()
+
+jwt = JWT(app, authenticate, identity)
 
 
 if __name__ == "__main__":
