@@ -31,3 +31,19 @@ def test():
     users = Fcuser.query.all()
 
     return jsonify([user.serialize for user in users])
+
+
+@api.route('/users/<uid>', methods=['GET', 'PUT', 'DELETE'])
+def user_detail(uid):
+    if request.method == 'GET':
+        user = Fcuser.query.filter(Fcuser.id == uid).first()
+        return jsonify(user.serialize)
+    elif request.method == 'DELETE':
+        Fcuser.query.delete(Fcuser.id == uid)
+        return jsonify(), 204
+    
+    data = request.get_json()
+
+    Fcuser.query.filter(Fcuser.id == uid).update(data)
+    user = Fcuser.query.filter(Fcuser.id == uid).first() 
+    return jsonify(user.serialize)
